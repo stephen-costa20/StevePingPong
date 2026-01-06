@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Steve's Ping Pong 🏓</title>
+  <style>
+    :root { color-scheme: light; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: #0b1220;
+      color: #e5e7eb;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      user-select: none; /* Prevent text selection while playing */
+      -webkit-user-select: none;
+    }
+
+    .wrap {
+      width: min(980px, 94vw);
+      padding: 18px;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    .hint {
+      font-size: 12px;
+      opacity: 0.85;
+      line-height: 1.4;
+      text-align: right;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      overflow: hidden;
+      position: relative;
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: radial-gradient(1200px 600px at 50% 20%, rgba(59,130,246,0.18), transparent 55%),
+                  linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      cursor: none; /* Hide cursor over game for immersion */
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      font-size: 12px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      opacity: 0.9;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.10);
+      white-space: nowrap;
+    }
+
+    /* Start Screen Overlay */
+    #start-screen {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(11, 18, 32, 0.95);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      backdrop-filter: blur(8px);
+    }
+
+    .mode-btn {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      padding: 16px 32px;
+      font-size: 18px;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      width: 220px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: transform 0.1s, filter 0.2s;
+    }
+    .mode-btn:hover { filter: brightness(1.1); }
+    .mode-btn:active { transform: scale(0.98); }
+    .mode-btn.hard {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+    .intro-title {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title">Steve’s Ping Pong 🏓</div>
+      <div class="hint">
+        Move: mouse/touch • Pause: <b>P</b> • Restart: <b>R</b><br/>
+        First to 7 wins
+      </div>
+    </div>
+
+    <div class="card">
+      <div id="start-screen">
+        <div class="intro-title">Select Mode</div>
+        <button class="mode-btn" onclick="startGame('easy')">Easy Mode</button>
+        <button class="mode-btn hard" onclick="startGame('hard')">Hard Mode</button>
+      </div>
+
+      <canvas id="game" width="960" height="540" aria-label="Ping Pong game canvas"></canvas>
+      <div class="footer">
+        <span class="pill">You: <b id="p1">0</b></span>
+        <span class="pill">CPU: <b id="p2">0</b></span>
+        <span class="pill">Status: <b id="status">Select Mode</b></span>
+      </div>
+    </div>
+  </div>
+
+<script>
+window.startGame = null;
+
+(() => {
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+
+  const p1El = document.getElementById("p1");
+  const p2El = document.getElementById("p2");
+  const statusEl = document.getElementById("status");
+  const startScreen = document.getElementById("start-screen");
+
+  // HiDPI crispness
+  function fitDPI() {
+    const cssW = canvas.clientWidth;
+    const cssH = canvas.clientHeight;
+    const ratio = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+
+    const targetW = 960;
+    const targetH = 540;
+
+    canvas.width = targetW * ratio;
+    canvas.height = targetH * ratio;
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+    game.w = targetW;
+    game.h = targetH;
+  }
+
+  const game = {
+    w: 960,
+    h: 540,
+    paused: false,
+    over: false,
+    started: false,
+    mode: 'easy',
+    winScore: 7,
+    lastTS: 0,
+    // Physics / Tuning Parameters
+    speedUp: 0.05,       // Faster speed ramp per hit
+    cpuBaseSpeed: 850,   // Much faster CPU base speed (was 580)
+    cpuSkill: 0.8,       // Start at 80% efficiency (was 11%)
+    ballBaseSpeed: 650,  // Faster start speed (was 420)
+    maxBallSpeed: 1400,  // Higher top speed cap
+  };
+
+  const paddle = {
+    w: 14,
+    h: 92,
+    inset: 22,
+  };
+
+  const state = {
+    p1y: 540/2 - paddle.h/2,
+    p2y: 540/2 - paddle.h/2,
+    p1Score: 0,
+    p2Score: 0,
+    pointerY: null,
+  };
+
+  let balls = [];
+
+  function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+  function createBall(soft=false) {
+    const dir = Math.random() < 0.5 ? -1 : 1;
+    // Faster base speed
+    const base = soft ? (game.ballBaseSpeed * 0.8) : game.ballBaseSpeed; 
+    return {
+      x: game.w / 2,
+      y: game.h / 2,
+      r: 8,
+      vx: dir * base,
+      vy: (Math.random() * 400 - 200), // steeper initial angles
+      maxV: game.maxBallSpeed
+    };
+  }
+
+  function spawnBalls(soft=false) {
+    balls = [];
+    let count = 1;
+    if (game.mode === 'hard') {
+      count = 1 + state.p1Score + state.p2Score;
+    }
+
+    for (let i = 0; i < count; i++) {
+      const b = createBall(soft);
+      if (count > 1) {
+        // Spread balls out more in hard mode
+        b.vy = (Math.random() * 600 - 300); 
+        b.vx = b.vx * (1 + Math.random() * 0.2); // Vary speeds slightly
+        b.x += (Math.random() * 60 - 30); 
+      }
+      balls.push(b);
+    }
+  }
+
+  window.startGame = (mode) => {
+    game.mode = mode;
+    game.started = true;
+    startScreen.style.display = "none";
+    resetMatch();
+  };
+
+  function resetMatch() {
+    state.p1Score = 0;
+    state.p2Score = 0;
+    p1El.textContent = "0";
+    p2El.textContent = "0";
+    game.over = false;
+    game.paused = false;
+    
+    const modeLabel = game.mode === 'hard' ? "Hard Mode" : "Easy Mode";
+    statusEl.textContent = `Playing (${modeLabel})`;
+    
+    state.p1y = game.h/2 - paddle.h/2;
+    state.p2y = game.h/2 - paddle.h/2;
+
+    // Reset Difficulty Tuning
+    game.speedUp = 0.05;
+    
+    // Hard mode starts CPU at near-perfect speed to handle chaos
+    if (game.mode === 'hard') {
+        game.cpuSkill = 1.0; 
+    } else {
+        game.cpuSkill = 0.75; // Easy mode starts decent but beatable
+    }
+
+    spawnBalls(true);
+  }
+
+  function drawBackground() {
+    ctx.clearRect(0, 0, game.w, game.h);
+    
+    // Center Line
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.fillStyle = "#cbd5e1";
+    const dotW = 6, dotH = 14, gap = 14;
+    for (let y = 18; y < game.h - 18; y += dotH + gap) {
+      ctx.fillRect(game.w/2 - dotW/2, y, dotW, dotH);
+    }
+    ctx.restore();
+
+    // Glow
+    ctx.save();
+    ctx.globalAlpha = 0.30;
+    const grad = ctx.createRadialGradient(game.w/2, 0, 20, game.w/2, 0, game.w);
+    grad.addColorStop(0, "rgba(59,130,246,0.20)");
+    grad.addColorStop(1, "rgba(59,130,246,0)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, game.w, game.h);
+    ctx.restore();
+  }
+
+  function drawPaddle(x, y) {
+    ctx.save();
+    ctx.fillStyle = "rgba(255,255,255,0.95)";
+    ctx.shadowColor = "rgba(0,0,0,0.5)";
+    ctx.shadowBlur = 15;
+    ctx.shadowOffsetY = 4;
+    ctx.fillRect(x, y, paddle.w, paddle.h);
+    ctx.restore();
+  }
+
+  function drawBall(b) {
+    ctx.save();
+    ctx.beginPath();
+    const isHard = game.mode === 'hard';
+    ctx.fillStyle = isHard ? "#fca5a5" : "#e5e7eb";
+    ctx.shadowColor = isHard ? "rgba(239,68,68,0.6)" : "rgba(59,130,246,0.6)";
+    ctx.shadowBlur = 12;
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawOverlay(text) {
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,0.45)";
+    ctx.fillRect(0, 0, game.w, game.h);
+
+    ctx.fillStyle = "#e5e7eb";
+    ctx.font = "700 34px ui-sans-serif, system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText(text, game.w/2, game.h/2 - 10);
+
+    ctx.font = "500 16px ui-sans-serif, system-ui";
+    ctx.globalAlpha = 0.92;
+    ctx.fillText("Press R to restart", game.w/2, game.h/2 + 26);
+    ctx.restore();
+  }
+
+  function paddleCollision(px, py, b) {
+    const left = px;
+    const right = px + paddle.w;
+    const top = py;
+    const bottom = py + paddle.h;
+    return (b.x + b.r > left && b.x - b.r < right && b.y + b.r > top && b.y - b.r < bottom);
+  }
+
+  function reflectFromPaddle(px, py, isLeft, b) {
+    b.x = isLeft ? (px + paddle.w + b.r) : (px - b.r);
+
+    const center = py + paddle.h/2;
+    const rel = (b.y - center) / (paddle.h/2);
+    const angle = rel * (Math.PI / 3.5); // Slightly shallower max angle for speed control
+
+    const speed = Math.min(b.maxV, Math.hypot(b.vx, b.vy) * (1 + game.speedUp));
+    const dir = isLeft ? 1 : -1;
+
+    b.vx = dir * Math.cos(angle) * speed;
+    b.vy = Math.sin(angle) * speed;
+
+    // Ramp difficulty slightly
+    game.cpuSkill = clamp(game.cpuSkill + 0.01, 0.75, 1.2); 
+    game.speedUp = clamp(game.speedUp + 0.002, 0.05, 0.10);
+  }
+
+  function update(dt) {
+    if (!game.started || game.paused || game.over) return;
+
+    // 1. Player Paddle Logic (Snappier)
+    const desired = (state.pointerY == null)
+      ? (game.h/2 - paddle.h/2)
+      : (state.pointerY - paddle.h/2);
+    
+    // Increased smoothing factor from 0.22 to 0.50 for responsiveness
+    state.p1y += (desired - state.p1y) * 0.50; 
+    state.p1y = clamp(state.p1y, 10, game.h - paddle.h - 10);
+
+    // 2. CPU Paddle Logic (Smarter & Faster)
+    let targetBall = null;
+    const threatBalls = balls.filter(b => b.vx > 0);
+    
+    if (threatBalls.length > 0) {
+      // Prioritize closest ball
+      threatBalls.sort((a, b) => b.x - a.x);
+      targetBall = threatBalls[0];
+    } else {
+      // Return to center if no threats
+      targetBall = { y: game.h/2, vy: 0 }; 
+    }
+
+    const cpuCenter = state.p2y + paddle.h/2;
+    // Simple prediction
+    let aim = clamp(targetBall.y + targetBall.vy * 0.1, 20, game.h - 20);
+    
+    const delta = aim - cpuCenter;
+    // Faster movement speed
+    const maxMove = game.cpuBaseSpeed * game.cpuSkill * dt;
+    const move = clamp(delta, -maxMove, maxMove);
+    
+    state.p2y = clamp(state.p2y + move, 10, game.h - paddle.h - 10);
+
+    // 3. Ball Logic
+    let roundEnded = false;
+
+    balls.forEach(ball => {
+      if (roundEnded) return;
+
+      ball.x += ball.vx * dt;
+      ball.y += ball.vy * dt;
+
+      // Wall bounce
+      if (ball.y - ball.r <= 0) { ball.y = ball.r; ball.vy *= -1; }
+      if (ball.y + ball.r >= game.h) { ball.y = game.h - ball.r; ball.vy *= -1; }
+
+      // Paddle Collisions
+      const p1x = paddle.inset;
+      const p2x = game.w - paddle.inset - paddle.w;
+
+      if (paddleCollision(p1x, state.p1y, ball) && ball.vx < 0) {
+        reflectFromPaddle(p1x, state.p1y, true, ball);
+      }
+      if (paddleCollision(p2x, state.p2y, ball) && ball.vx > 0) {
+        reflectFromPaddle(p2x, state.p2y, false, ball);
+      }
+
+      // Scoring
+      if (ball.x + ball.r < 0) {
+        state.p2Score += 1;
+        p2El.textContent = String(state.p2Score);
+        roundEnded = true;
+      } else if (ball.x - ball.r > game.w) {
+        state.p1Score += 1;
+        p1El.textContent = String(state.p1Score);
+        roundEnded = true;
+      }
+    });
+
+    if (roundEnded) {
+      if (state.p1Score >= game.winScore) {
+        game.over = true;
+        statusEl.textContent = "You win 🏆";
+      } else if (state.p2Score >= game.winScore) {
+        game.over = true;
+        statusEl.textContent = "CPU wins 🤖";
+      } else {
+        spawnBalls();
+      }
+    }
+  }
+
+  function draw() {
+    drawBackground();
+
+    const p1x = paddle.inset;
+    const p2x = game.w - paddle.inset - paddle.w;
+
+    drawPaddle(p1x, state.p1y);
+    drawPaddle(p2x, state.p2y);
+    
+    balls.forEach(b => drawBall(b));
+
+    // Score
+    ctx.save();
+    ctx.globalAlpha = 0.75;
+    ctx.fillStyle = "#e5e7eb";
+    ctx.font = "700 28px ui-sans-serif, system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText(`${state.p1Score}  —  ${state.p2Score}`, game.w/2, 44);
+    ctx.restore();
+
+    if (game.paused && !game.over) drawOverlay("Paused");
+    if (game.over) {
+      drawOverlay(state.p1Score >= game.winScore ? "You Win 🏓🏆" : "CPU Wins 🤖");
+    }
+  }
+
+  function loop(ts) {
+    const t = ts / 1000;
+    const dt = Math.min(0.05, t - (game.lastTS || t)); // slightly larger cap
+    game.lastTS = t;
+
+    update(dt);
+    draw();
+
+    requestAnimationFrame(loop);
+  }
+
+  function pointerToY(evt) {
+    const rect = canvas.getBoundingClientRect();
+    const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+    const y = (clientY - rect.top) / rect.height * game.h;
+    state.pointerY = y;
+  }
+
+  canvas.addEventListener("mousemove", pointerToY, { passive: true });
+  canvas.addEventListener("touchstart", pointerToY, { passive: true });
+  canvas.addEventListener("touchmove", pointerToY, { passive: true });
+
+  window.addEventListener("keydown", (e) => {
+    if (!game.started) return;
+    const k = e.key.toLowerCase();
+    if (k === "p") {
+      game.paused = !game.paused;
+      statusEl.textContent = game.paused ? "Paused" : (game.over ? statusEl.textContent : `Playing (${game.mode})`);
+    }
+    if (k === "r") {
+      resetMatch();
+    }
+  });
+
+  window.addEventListener("resize", fitDPI);
+
+  fitDPI();
+  drawBackground(); 
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
