@@ -1,7 +1,7 @@
 <p align="center">
-  <a href="https://stephen-costa20.github.io/stevepingpong/"><img src="https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-brightgreen?style=for-the-badge" alt="Live Demo"></a>
-  <a href="https://github.com/stephen-costa20/stevepingpong/blob/main/LICENSE"><img src="https://img.shields.io/github/license/stephen-costa20/pingpong?style=for-the-badge" alt="License"></a>
-  <a href="https://github.com/stephen-costa20/stevepingpong/commits/main"><img src="https://img.shields.io/github/last-commit/stephen-costa20/pingpong?style=for-the-badge" alt="Last Commit"></a>
+  <a href="https://stephen-costa20.github.io/StevePingPong/"><img src="https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-brightgreen?style=for-the-badge" alt="Live Demo"></a>
+  <a href="https://stephen-costa20.github.io/StevePingPong/blob/main/LICENSE"><img src="https://img.shields.io/github/license/stephen-costa20/pingpong?style=for-the-badge" alt="License"></a>
+  <a href="https://stephen-costa20.github.io/StevePingPong/commits/main"><img src="https://img.shields.io/github/last-commit/stephen-costa20/pingpong?style=for-the-badge" alt="Last Commit"></a>
   <img src="https://img.shields.io/badge/Built%20With-JavaScript-yellow?style=for-the-badge" alt="Built with JavaScript">
 </p>
 
@@ -12,7 +12,7 @@ A browser-based Ping Pong game built with **HTML, CSS, and vanilla JavaScript**.
 🎮 **Play the live demo:**  
 https://stephen-costa20.github.io/stevepingpong/
 
-<a href="https://stephen-costa20.github.io/stevepingpong/" target="_blank">
+<a href="https://stephen-costa20.github.io/StevePingPong/" target="_blank">
   <img src="assets/pingpong-preview.gif" alt="Ping Pong game preview" width="900" />
 </a>
 
