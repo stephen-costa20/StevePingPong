@@ -10,7 +10,7 @@
 A browser-based Ping Pong game built with **HTML, CSS, and vanilla JavaScript**. Play against a fast, responsive CPU directly in your browser — no build tools, installs, or dependencies required.
 
 🎮 **Play the live demo:**  
-https://stephen-costa20.github.io/stevepingpong/
+https://stephen-costa20.github.io/StevePingPong/
 
 <a href="https://stephen-costa20.github.io/StevePingPong/" target="_blank">
   <img src="assets/pingpong-preview.gif" alt="Ping Pong game preview" width="900" />
@@ -70,7 +70,7 @@ Designed to be stressful (in a good way):
 Clone the repo and open the HTML file:
 
 ```bash
-git clone https://github.com/stephen-costa20/stevepingpong.git
+git clone https://github.com/stephen-costa20/StevePingPong.git
 cd pingpong
 open index.html
 ```
@@ -111,4 +111,4 @@ No frameworks, no bundlers, no build step.
 
 This project is deployed using GitHub Pages and is available here:
 
-https://stephen-costa20.github.io/stevepingpong/
+https://stephen-costa20.github.io/StevePingPong/
