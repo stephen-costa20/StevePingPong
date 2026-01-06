@@ -1,7 +1,7 @@
 <p align="center">
-  <a href="https://stephen-costa20.github.io/pingpong/"><img src="https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-brightgreen?style=for-the-badge" alt="Live Demo"></a>
-  <a href="https://github.com/stephen-costa20/pingpong/blob/main/LICENSE"><img src="https://img.shields.io/github/license/stephen-costa20/pingpong?style=for-the-badge" alt="License"></a>
-  <a href="https://github.com/stephen-costa20/pingpong/commits/main"><img src="https://img.shields.io/github/last-commit/stephen-costa20/pingpong?style=for-the-badge" alt="Last Commit"></a>
+  <a href="https://stephen-costa20.github.io/stevepingpong/"><img src="https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-brightgreen?style=for-the-badge" alt="Live Demo"></a>
+  <a href="https://github.com/stephen-costa20/stevepingpong/blob/main/LICENSE"><img src="https://img.shields.io/github/license/stephen-costa20/pingpong?style=for-the-badge" alt="License"></a>
+  <a href="https://github.com/stephen-costa20/stevepingpong/commits/main"><img src="https://img.shields.io/github/last-commit/stephen-costa20/pingpong?style=for-the-badge" alt="Last Commit"></a>
   <img src="https://img.shields.io/badge/Built%20With-JavaScript-yellow?style=for-the-badge" alt="Built with JavaScript">
 </p>
 
@@ -10,9 +10,9 @@
 A browser-based Ping Pong game built with **HTML, CSS, and vanilla JavaScript**. Play against a fast, responsive CPU directly in your browser — no build tools, installs, or dependencies required.
 
 🎮 **Play the live demo:**  
-https://stephen-costa20.github.io/pingpong/
+https://stephen-costa20.github.io/stevepingpong/
 
-<a href="https://stephen-costa20.github.io/pingpong/" target="_blank">
+<a href="https://stephen-costa20.github.io/stevepingpong/" target="_blank">
   <img src="assets/pingpong-preview.gif" alt="Ping Pong game preview" width="900" />
 </a>
 
@@ -70,7 +70,7 @@ Designed to be stressful (in a good way):
 Clone the repo and open the HTML file:
 
 ```bash
-git clone https://github.com/stephen-costa20/pingpong.git
+git clone https://github.com/stephen-costa20/stevepingpong.git
 cd pingpong
 open index.html
 ```
@@ -111,4 +111,4 @@ No frameworks, no bundlers, no build step.
 
 This project is deployed using GitHub Pages and is available here:
 
-https://stephen-costa20.github.io/pingpong/
+https://stephen-costa20.github.io/stevepingpong/
